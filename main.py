@@ -1,28 +1,46 @@
 import wmi
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 
-# TODO : read this https://chromedriver.chromium.org/home 
-# read up on selenium 
-
-    # Instantiate headless driver
+# Instantiate headless driver
 chrome_options = Options()
+
 # Windows path
-chromedriver_location = 'C:\\path\\to\\chromedriver_win32\\chromedriver.exe'
-# Mac path. May have to allow chromedriver developer in os system prefs
-'/Users/path/to/chromedriver'
+ser = Service("C:/Users/Chris/Downloads/chromedriver_win32/chromedriver.exe")
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
+chrome_options.add_argument("--disable-gpu")
 
-chrome_prefs = {"download.default_directory": r"C:\path\to\Downloads"} # (windows)
-chrome_options.experimental_options["prefs"] = chrome_prefs
-driver = webdriver.Chrome(chromedriver_location,options=chrome_options)
+# chrome_prefs = {"download.default_directory": r"C:/Users/Chris/Downloads"}  # (windows)
+chrome_options.add_experimental_option(
+    "prefs",
+    {
+        "download.default_directory": "C:/Users/Chris/Downloads",
+        "download.prompt_for_download": False,
+    },
+)
+
+
+# chrome_options.experimental_options["prefs"] = chrome_prefs
+driver = webdriver.Chrome(service=ser, options=chrome_options)
+driver.command_executor._commands["send_command"] = (
+    "POST",
+    "/session/$sessionId/chromium/send_command",
+)
+params = {
+    "cmd": "Page.setDownloadBehavior",
+    "params": {"behavior": "allow", "downloadPath": "C:/Users/Chris/Downloads"},
+}
+command_result = driver.execute("send_command", params)
 # Download your file
-driver.get('https://www.mockaroo.com/')
-driver.find_element_by_id('download').click()
+driver.get("https://www.mockaroo.com/")
+driver.find_element(By.CLASS_NAME, "MuiButtonGroup-root")
+driver.find_element(By.CSS_SELECTOR, "button").click()
 
 # NVIDIA_URL = "https://www.nvidia.com/Download/Find.aspx"
 # computer = wmi.WMI()
