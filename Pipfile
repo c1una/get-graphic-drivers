@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 wmi = "*"
 selenium = "*"
+requests = "*"
 
 [dev-packages]
 
