@@ -13,10 +13,12 @@ from selenium.webdriver.support.ui import Select
 
 # config
 DOWNLOADS_PATH = str(Path.home() / "Downloads")
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36"
 
 options = Options()
 options.add_argument("--headless")
-# options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("user-agent={0}".format(USER_AGENT))
 options.add_experimental_option("excludeSwitches", ["enable-logging"])
 driver = webdriver.Chrome(options=options)
 
@@ -29,8 +31,8 @@ def main():
     os = "{} {} {}".format(os_caption[1], os_caption[2], architecture)
     gpu_info = computer.Win32_VideoController()[0].Name.split()
     gpu = {
-        # "vendor": gpu_info[0],  # ex. Nvidia
-        "vendor": "AMD",
+        "vendor": gpu_info[0],  # ex. Nvidia
+        # "vendor": "AMD",
         "product_type": gpu_info[1],  # ex. Geforce
         "product_series": "%s %s %s Series"
         % (gpu_info[1], gpu_info[2], gpu_info[3][0:2]),  # ex. Geforce RTX
@@ -98,78 +100,76 @@ def main():
                 "/html/body/div[1]/div[2]/div[3]/table/tbody/tr/td/div/table[1]/tbody/tr[8]/td[1]/a",
             ).click()
             driver.implicitly_wait(1)
-
             # get href link
             driver_url = driver.find_element(
                 By.XPATH,
                 "/html/body/div[2]/div/table/tbody/tr/td/div[3]/div[2]/table/tbody/tr/td/a",
             ).get_attribute("href")
             driver.quit()
-            download_driver(driver_url)
+            download_driver(driver_url, is_amd=False)
         except:
             print("@!")
 
     def fetch_amd_driver(url):
-        print(url)
-        # TODO: Clean up code
-        driver.get(url)
-        driver.delete_all_cookies()
         name = "Radeon™ PRO WX 7100"
-        if not "AMD" in driver.title:
-            print(driver.title)
-            raise Exception("could not load page")
+        product_type = "Professional Graphics"
+        product_family = "AMD Radeon™ PRO"
+        product_line = "Radeon™ PRO WX x100 Series"
+        product_model = name
 
-        if "PRO" in name:
-            option = "Professional Graphics"
-            print(option)
-        else:
-            option = "Graphics"
+        # TODO: Clean up code
+        try:
+            driver.get(url)
+            if not "AMD" in driver.title:
+                print(driver.title)
+                raise Exception("could not load page")
 
-        product_type = Select(
-            driver.find_element(By.ID, "Producttype")
-        ).select_by_visible_text(option)
+            if "PRO" not in name:
+                product_type = "Graphics"
+            # populate options
+            sel_product_type = Select(
+                driver.find_element(By.ID, "Producttype")
+            ).select_by_visible_text(product_type)
+            sel_product_family = Select(
+                driver.find_element(By.ID, "Productfamily")
+            ).select_by_visible_text(product_family)
+            sel_product_line = Select(
+                driver.find_element(By.ID, "Productline")
+            ).select_by_visible_text(product_line)
+            sel_product_model = Select(
+                driver.find_element(By.ID, "Productmodel")
+            ).select_by_visible_text(product_model)
+            # navgiate through site
+            driver.find_element(By.ID, "edit-submit").click()
+            driver.implicitly_wait(5)
+            driver.find_element(
+                By.XPATH,
+                "/html/body/div[1]/main/div/div/div/div/div[1]/div[1]/div/div[2]/details[2]",
+            )
+            # driver.implicitly_wait(5)
+            driver_url = driver.find_element(
+                By.XPATH,
+                "/html/body/div[1]/main/div/div/div/div/div[1]/div[1]/div/div[2]/details[2]/div/div[1]/div/span/div/div[2]/div[4]/a",
+            ).get_attribute("href")
 
-        product_family = Select(
-            driver.find_element(By.ID, "Productfamily")
-        ).select_by_visible_text("AMD Radeon™ PRO")
+            driver.quit()
+            download_driver(driver_url, is_amd=True)
+        except:
+            print("AMD")
 
-        product_line = Select(
-            driver.find_element(By.ID, "Productline")
-        ).select_by_visible_text("Radeon™ PRO WX x100 Series")
-
-        product_model = Select(
-            driver.find_element(By.ID, "Productmodel")
-        ).select_by_visible_text(name)
-
-        driver.find_element(By.ID, "edit-submit").click()
-        driver.implicitly_wait(5)
-        driver.find_element(
-            By.XPATH,
-            "/html/body/div[1]/main/div/div/div/div/div[1]/div[1]/div/div[2]/details[2]",
-        )
-        # driver.implicitly_wait(5)
-        driverURL = driver.find_element(
-            By.XPATH,
-            "/html/body/div[1]/main/div/div/div/div/div[1]/div[1]/div/div[2]/details[2]/div/div[1]/div/span/div/div[2]/div[4]/a",
-        ).get_attribute("href")
-
-        driver.quit()
-        download_driver(driverURL)
-
-    def download_driver(url):
+    def download_driver(url, is_amd):
         # clear = lambda: system("cls")
         # clear()
         print(f"got the driver\n:", url)
         req = Request(url)
-        req.add_header("Referer", "https://www.amd.com/")
+        if is_amd:
+            req.add_header("Referer", "https://www.amd.com/")
         with urlopen(req) as file:
             print("downloading to {} ...".format(DOWNLOADS_PATH))
             content = file.read()
         with open("{}\\output2.exe".format(DOWNLOADS_PATH), "wb") as download:
             download.write(content)
-        print("done!")
-        sleep(2)
-        return
+        return print("done!")
 
     # # chrome_options.add_argument("--headless")
     # # chrome_options.add_argument("--no-sandbox")
