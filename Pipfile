@@ -7,6 +7,7 @@ name = "pypi"
 wmi = "*"
 selenium = "*"
 requests = "*"
+auto-py-to-exe = "*"
 
 [dev-packages]
 

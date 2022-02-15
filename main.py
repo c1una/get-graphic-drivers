@@ -1,16 +1,16 @@
-from black import filter_cached
-import wmi
+from itertools import product
+import re
 from os import system
 from time import sleep
-import re
-from urllib.request import urlopen, Request
 from pathlib import Path
+from urllib.request import urlopen, Request
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
+import wmi
 
 # config
 DOWNLOADS_PATH = str(Path.home() / "Downloads")
@@ -23,7 +23,7 @@ options.add_argument("user-agent={0}".format(USER_AGENT))
 options.add_experimental_option("excludeSwitches", ["enable-logging"])
 driver = webdriver.Chrome(options=options)
 
-
+# TODO: separate functions into their own python files
 def main():
     computer = wmi.WMI()
     os_info = computer.Win32_OperatingSystem()[0]
@@ -56,11 +56,10 @@ def main():
                 return fetch_amd_driver(AMD_URL)
 
     def fetch_nvidia_driver(url):
-        # TODO: Learn python error handling
-        # ['GeForce', 'RTX', '2070', 'SUPER']
-        #  ['Quadro', "GV100"]
-        #
         def parse_product_series():
+            """
+            Grabs the first two digits from the series number
+            """
             filtered = []
             for element in gpu_info_arr[1 : len(gpu_info_arr)]:
                 if element.isnumeric():
@@ -79,165 +78,84 @@ def main():
         print("Product Series:", product_series)
         print("Product:", product)
         print("OS:", operating_system)
-
-        # if arr_length:
-        #     graphic_card["product_type"] = arr[0]
-        #     graphic_card["product_series"] = "{} Series".format(arr[0], )
-        #     graphic_card["product"] = " ".join(arr)
-
-        # print(graphic_card["product"])
-
-        # client_gpu = {
-        #     "product_type": gpu_info[0],  # ex. Geforce
-        #     "product_series": "%s %s %s Series"
-        #     % (gpu_info[0], gpu_info[1], gpu_info[3][0:2]),  # ex. Geforce RTX
-        #     "product": "%s %s %s %s"
-        #     % (gpu_info[1], gpu_info[2], gpu_info[3], gpu_info[4]),
-        # }
-        # product_series_type = gpu["product_type"]
-        # product_series = gpu["product_series"]
-        # product_family = gpu["product"]
-
-        # driver = webdriver.Chrome()
-        driver.get(url)
-
-        # if not "Official" in driver.title:
-        #     raise Exception("could not load page")
-
-        # if "quadro" in gpu.values():
-        #     product_series_type = "NVIDIA RTX / Quadro"
-
-        # if "11" in os:
-        #     operating_system = "Windows 11"
-
-        # product_series_type = "Quadro"
-        # product_series_type = "GeForce"
-        # product_series = "{}".format(" ".join(arr))
-
-        ##
-        # product series type
-        sel_product_series_type = Select(
-            driver.find_element(By.ID, "selProductSeriesType")
-        )
-        sel_product_series_type_options = sel_product_series_type.options
-        for option in sel_product_series_type_options:
-            if product_type in option.text:
-                sel_product_series_type.select_by_visible_text(option.text)
-                print(f"\nsel_product_type:", option.text)
-
-        ##
-        # product series
-        sel_product_series = Select(driver.find_element(By.ID, "selProductSeries"))
-        sel_product_series_options = sel_product_series.options
-        for option in sel_product_series_options:
-            if re.fullmatch(product_series, option.text):
-                sel_product_series.select_by_visible_text(option.text)
-                print("sel_product_series:", option.text)
-
-        ##
-        # product
-        sel_product_family = Select(driver.find_element(By.ID, "selProductFamily"))
-        sel_product_family_options = sel_product_family.options
-        for option in sel_product_family_options:
-            if re.fullmatch(product, option.text):
-                sel_product_family.select_by_visible_text(option.text)
-                print("sel_product_family:", option.text)
-
-        ##
-        # operating system
-        sel_operating_system = Select(
-            driver.find_element(By.ID, "selOperatingSystem")
-        ).select_by_visible_text(operating_system)
-        print("sel_operating_system:", sel_operating_system)
-
-        # navigate through some pages
-        searchButton = driver.find_element(
-            By.XPATH, "//*[@id='Table1']/tbody/tr/td/table[2]/tbody/tr/td/a"
-        ).click()
-
-        driver.implicitly_wait(1)
-        driver.find_element(
-            By.XPATH,
-            "/html/body/div[1]/div[2]/div[3]/form/table[2]/tbody/tr/td/table[2]/tbody/tr/td/table/tbody/tr/td/table/tbody/tr/td/table/tbody/tr[2]/td[2]/b/a",
-        ).click()
-        driver.find_element(
-            By.XPATH,
-            "/html/body/div[1]/div[2]/div[3]/table/tbody/tr/td/div/table[1]/tbody/tr[8]/td[1]/a",
-        ).click()
-        driver.implicitly_wait(1)
-        # get href link
-        driver_url = driver.find_element(
-            By.XPATH,
-            "/html/body/div[2]/div/table/tbody/tr/td/div[3]/div[2]/table/tbody/tr/td/a",
-        ).get_attribute("href")
-        driver.quit()
-        download_driver(driver_url, is_amd=False)
-
-        # filtered = []
-        # for e in sel_product_series:
-        #     for x in gpu_info2:
-        #         print(x)
-        #         z = re.search("[{}]+".format(x), e.text)
-        #         if z != None:
-        #             filtered.append(x)
-
-        # pattern = "^(.*)[RTX 2070 SUPER]"
-
-        # z = re.search(pattern, e.text)
-        # if z:
-        #     print("MATCHED: ", e.text)
-        # if e.text in product_series:
-        # print(filtered)
-        #     print(e.text)
         try:
-            print("")
+            driver.get(url)
+            if not "Official" in driver.title:
+                raise Exception("could not load page")
+            # product series type
+            sel_product_series_type = Select(
+                driver.find_element(By.ID, "selProductSeriesType")
+            )
+            sel_product_series_type_options = sel_product_series_type.options
+            for option in sel_product_series_type_options:
+                if product_type in option.text:
+                    sel_product_series_type.select_by_visible_text(option.text)
+                    print(f"\nsel_product_type:", option.text)
 
-            # print("fetching link...")
-            # populate options
-            # sel_product_series_type = Select(
-            #     driver.find_element(By.ID, "selProductSeriesType")
-            # ).select_by_visible_text(product_series_type)
-            # sel_product_series = Select(
-            #     driver.find_element(By.ID, "selProductSeries")
-            # ).select_by_visible_text(product_series)
-            # sel_product_family = Select(
-            #     driver.find_element(By.ID, "selProductFamily")
-            # ).select_by_visible_text(product_family)
-            # sel_operating_system = Select(
-            #     driver.find_element(By.ID, "selOperatingSystem")
-            # ).select_by_visible_text(operating_system)
-            # # navigate through pages
-            # driver.find_element(
-            #     By.XPATH, "//*[@id='Table1']/tbody/tr/td/table[2]/tbody/tr/td/a"
-            # ).click()
-            # driver.implicitly_wait(1)
-            # driver.find_element(
-            #     By.XPATH,
-            #     "/html/body/div[1]/div[2]/div[3]/form/table[2]/tbody/tr/td/table[2]/tbody/tr/td/table/tbody/tr/td/table/tbody/tr/td/table/tbody/tr[2]/td[2]/b/a",
-            # ).click()
-            # driver.find_element(
-            #     By.XPATH,
-            #     "/html/body/div[1]/div[2]/div[3]/table/tbody/tr/td/div/table[1]/tbody/tr[8]/td[1]/a",
-            # ).click()
-            # driver.implicitly_wait(1)
-            # # get href link
-            # driver_url = driver.find_element(
-            #     By.XPATH,
-            #     "/html/body/div[2]/div/table/tbody/tr/td/div[3]/div[2]/table/tbody/tr/td/a",
-            # ).get_attribute("href")
-            # driver.quit()
-            # download_driver(driver_url, is_amd=False)
+            # product series
+            sel_product_series = Select(driver.find_element(By.ID, "selProductSeries"))
+            sel_product_series_options = sel_product_series.options
+            for option in sel_product_series_options:
+                if re.fullmatch(product_series, option.text):
+                    sel_product_series.select_by_visible_text(option.text)
+                    print("sel_product_series:", option.text)
+
+            # product
+            sel_product_family = Select(driver.find_element(By.ID, "selProductFamily"))
+            sel_product_family_options = sel_product_family.options
+            for option in sel_product_family_options:
+                if re.fullmatch(product, option.text):
+                    sel_product_family.select_by_visible_text(option.text)
+                    print("sel_product_family:", option.text)
+
+            # operating system
+            sel_operating_system = Select(
+                driver.find_element(By.ID, "selOperatingSystem")
+            ).select_by_visible_text(operating_system)
+            print("sel_operating_system:", sel_operating_system)
+
+            # navigate through some pages
+            search_button = driver.find_element(
+                By.XPATH, "//*[@id='Table1']/tbody/tr/td/table[2]/tbody/tr/td/a"
+            ).click()
+
+            driver.implicitly_wait(1)
+            driver_list = driver.find_element(
+                By.XPATH,
+                "/html/body/div[1]/div[2]/div[3]/form/table[2]/tbody/tr/td/table[2]/tbody/tr/td/table/tbody/tr/td/table/tbody/tr/td/table/tbody/tr[2]/td[2]/b/a",
+            ).click()
+            first_download_button = driver.find_element(
+                By.XPATH,
+                "/html/body/div[1]/div[2]/div[3]/table/tbody/tr/td/div/table[1]/tbody/tr[8]/td[1]/a",
+            ).click()
+            driver.implicitly_wait(1)
+            # get href link
+            driver_url = driver.find_element(
+                By.XPATH,
+                "/html/body/div[2]/div/table/tbody/tr/td/div[3]/div[2]/table/tbody/tr/td/a",
+            ).get_attribute("href")
+            driver.quit()
+            download_driver(driver_url)
+
         except:
-            print("@!")
+            print("!")
 
     def fetch_amd_driver(url):
-        name = "Radeon™ PRO WX 7100"
-        product_type = "Professional Graphics"
-        product_family = "AMD Radeon™ PRO"
-        product_line = "Radeon™ PRO WX x100 Series"
-        product_model = name
+        gpu_arr = ["AMD", "Radeon", "R5", "430"]
+        gpu = " ".join(gpu_arr[1 : len(gpu_arr)])
+        # ["AMD", "Radeon", "Pro", "W5500"]
+        product_type = (
+            "Graphics" if "Pro" not in gpu_arr[1] else "Professional Graphics"
+        )  # "Graphics | Professional Graphics"
+        product_family = (
+            "{} Series".format(gpu)
+            if product_type == "Graphics"
+            else gpu  # e.g AMD Radeon™ R5 Series | AMD Radeon™ PRO
+        )
+        product_line = "Radeon™ PRO WX x100 Series"  # AMD Radeon™ R5 400 Series
+        product_model = name  # AMD Radeon™ R5 M430
 
-        # TODO: Clean up code
+        # TODO: refactor by adding loops
         try:
             driver.get(url)
             if not "AMD" in driver.title:
@@ -275,9 +193,11 @@ def main():
             driver.quit()
             download_driver(driver_url, is_amd=True)
         except:
-            print("AMD")
+            print(
+                "Graphic card is not supported",
+            )
 
-    def download_driver(url, is_amd):
+    def download_driver(url, is_amd=False):
         # clear = lambda: system("cls")
         # clear()
         print(f"got the driver\n:", url)
