@@ -9,13 +9,13 @@ def system_info():
     os = "{} {} {}".format(os_caption[1], os_caption[2], architecture)
     gpu_info_arr = computer.Win32_VideoController()[0].Name.split()
     vendor = gpu_info_arr[0]
-    # print(
-    #     "Vendor: {}\nGraphics card: {}\nOS: {} ".format(
-    #         vendor, " ".join(gpu_info_arr), os
-    #     )
-    # )
+    print(
+        "Vendor: {}\nGraphics card: {}\nOS: {} \n".format(
+            vendor, " ".join(gpu_info_arr), os
+        )
+    )
     return {"vendor": vendor, "gpu_info_arr": gpu_info_arr, "os": os}
 
 
 # test
-system_info()
+# system_info()
