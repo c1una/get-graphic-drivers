@@ -1,14 +1,16 @@
 import re
 from system_info import system_info
 from init_chromedriver import init_chromedriver
-from config import DOWNLOADS_PATH, NVIDIA_URL
-from urllib.request import urlopen, Request
+from config import NVIDIA_URL
+from download_driver import download_driver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
 
 
 def fetch_nvidia_driver(url=NVIDIA_URL):
     system = system_info()
+    if system["vendor"] != "NVIDIA":
+        return
     gpu_info_arr = system["gpu_info_arr"]
     os = system["os"]
     driver = init_chromedriver()
@@ -17,12 +19,9 @@ def fetch_nvidia_driver(url=NVIDIA_URL):
     product_type = gpu_info_arr[1]  # eg. GeForce
     product_series = "{} Series".format(" ".join(parse_product_series(gpu_info_arr)))
     product = "{}".format(" ".join(gpu_info_arr[1 : len(gpu_info_arr)]))
-    operating_system = os if "11" not in os else "Windows 11"
+    os = os if "11" not in os else "Windows 11"
     # operating_system = "Windows 10 64-bit"
-    print("Product Type:", product_type)
-    print("Product Series:", product_series)
-    print("Product:", product)
-    print("OS:", operating_system)
+    print_gpu_info(product_type, product_series, product, os)
     try:
         driver.get(url)
         if not "Official" in driver.title:
@@ -31,11 +30,12 @@ def fetch_nvidia_driver(url=NVIDIA_URL):
         sel_product_series_type = Select(
             driver.find_element(By.ID, "selProductSeriesType")
         )
+        print(f"\nPopulating options...")
         sel_product_series_type_options = sel_product_series_type.options
         for option in sel_product_series_type_options:
             if product_type in option.text:
                 sel_product_series_type.select_by_visible_text(option.text)
-                print(f"\nsel_product_type:", option.text)
+                print(f"sel_product_type:", option.text)
 
         # product series
         sel_product_series = Select(driver.find_element(By.ID, "selProductSeries"))
@@ -56,7 +56,7 @@ def fetch_nvidia_driver(url=NVIDIA_URL):
         # operating system
         sel_operating_system = Select(
             driver.find_element(By.ID, "selOperatingSystem")
-        ).select_by_visible_text(operating_system)
+        ).select_by_visible_text(os)
         print("sel_operating_system:", sel_operating_system)
 
         # navigate through some pages
@@ -73,7 +73,7 @@ def fetch_nvidia_driver(url=NVIDIA_URL):
             "/html/body/div[1]/div[2]/div[3]/table/tbody/tr/td/div/table[1]/tbody/tr[8]/td[1]/a",
         ).click()
         driver.implicitly_wait(1)
-        get_url_from_element(driver)
+        get_nvidia_url_from_element(driver)
     except Exception as e:
         print("\n{}".format(e))
 
@@ -92,7 +92,7 @@ def parse_product_series(gpu_info_arr):
     return filtered
 
 
-def get_url_from_element(driver):
+def get_nvidia_url_from_element(driver):
     try:
         driver_url = driver.find_element(
             By.XPATH,
@@ -106,17 +106,12 @@ def get_url_from_element(driver):
         download_driver(driver_url)
 
 
-def download_driver(url, is_amd=False):
-    print("\nDriver found.\n{}".format(url))
-    req = Request(url)
-    if is_amd:
-        req.add_header("Referer", "https://www.amd.com/")
-    with urlopen(req) as file:
-        print("\nDownloading to -> {} ...".format(DOWNLOADS_PATH))
-        content = file.read()
-    with open("{}\\output2.exe".format(DOWNLOADS_PATH), "wb") as download:
-        download.write(content)
-    return print("\ndone!")
+def print_gpu_info(product_type, product_series, product, operating_system):
+    print(f"Parsed output: ")
+    print("Product type: {}".format(product_type))
+    print("Product series: {}".format(product_series))
+    print("Product: {}".format(product))
+    print("Operating system: {}".format(operating_system))
 
 
 fetch_nvidia_driver()

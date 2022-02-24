@@ -10,7 +10,7 @@ def system_info():
     gpu_info_arr = computer.Win32_VideoController()[0].Name.split()
     vendor = gpu_info_arr[0]
     print(
-        "Vendor: {}\nGraphics card: {}\nOS: {} \n".format(
+        "\nDetected: \nVendor: {}\nGraphics card: {}\nOS: {}".format(
             vendor, " ".join(gpu_info_arr), os
         )
     )
