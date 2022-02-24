@@ -24,7 +24,7 @@ options.add_experimental_option("excludeSwitches", ["enable-logging"])
 driver = webdriver.Chrome(options=options)
 
 # TODO: separate functions into their own python files
-def main():
+def test():
     computer = wmi.WMI()
     os_info = computer.Win32_OperatingSystem()[0]
     architecture = os_info.OSArchitecture
@@ -205,7 +205,3 @@ def main():
     # chrome_options.add_argument("--disable-gpu")
 
     vendor_url("NVIDIA")
-
-
-if __name__ == "__main__":
-    main()

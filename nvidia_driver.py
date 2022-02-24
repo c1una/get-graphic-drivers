@@ -1,13 +1,12 @@
 import re
-from system_info import system_info
+import sys, os
 from init_chromedriver import init_chromedriver
-from config import NVIDIA_URL
 from download_driver import download_driver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
 
 
-def fetch_nvidia_driver(url=NVIDIA_URL):
+def fetch_nvidia_driver(url, system_info):
     system = system_info()
     if system["vendor"] != "NVIDIA":
         return
@@ -114,5 +113,4 @@ def print_gpu_info(product_type, product_series, product, operating_system):
     print("Operating system: {}".format(operating_system))
 
 
-fetch_nvidia_driver()
-input("Press enter to exit.")
+# fetch_nvidia_driver()
