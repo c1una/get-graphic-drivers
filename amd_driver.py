@@ -5,15 +5,13 @@ from selenium.webdriver.common.by import By
 
 def fetch_amd_driver(url, system_info):
     system = system_info()
-    # if system["vendor"] != "AMD":
-    #     print(f"\nNVIDIA card detected! Terminating script")
-    #     return
+    if check_vendor(system) == False:
+        return
     # gpu_arr = ["AMD", "Radeon", "R5", "430"]
-    # gpu_arr = system["gpu_info_arr"]
-    gpu_arr = ["AMD", "Radeon", "PRO", "W5500"]
+    gpu_arr = system["gpu_info_arr"]
+    # gpu_arr = ["AMD", "Radeon", "PRO", "W5500"]
     os = system["os"]
-    # Add trademark
-    for i in range(len(gpu_arr)):
+    for i in range(len(gpu_arr)):  # Add trademark
         if gpu_arr[i] == "Radeon":
             gpu_arr[i] = "Radeon™"
 
@@ -45,6 +43,12 @@ def fetch_amd_driver(url, system_info):
         print(e)
 
 
+def check_vendor(system):
+    if system["vendor"] != "AMD":
+        print("Can't run a AMD script on a NVIDIA card ¯\_(ツ)_/¯")
+        return False
+
+
 def parse_product_series(gpu_info_arr):
     filtered = []
     for element in gpu_info_arr[1 : len(gpu_info_arr)]:
@@ -67,7 +71,7 @@ def get_amd_url_from_element(driver, element_link):
 
 
 def print_gpu_info(product_type, product_family, product_line, product_model):
-    print(f"\nParsed output: ")
+    print(f"\nParsed output")
     print("Product type: {}".format(product_type))
     print("Product family: {}".format(product_family))
     print("Product line: {}".format(product_line))
