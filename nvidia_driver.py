@@ -1,5 +1,4 @@
 import re
-from time import sleep
 from init_chromedriver import init_chromedriver
 from download_driver import download_driver
 from selenium.webdriver.support.ui import Select
@@ -10,25 +9,31 @@ def fetch_nvidia_driver(url, system_info):
     system = system_info()
     if check_vendor(system) == False:
         return
-    gpu_info_arr = system["gpu_info_arr"]
-    # gpu_info_arr = ["NVIDIA", "Quadro", "K620"]
-    # gpu_info_arr = ["NVIDIA", "Quadro", "P4000"]
-    gpu = " ".join(gpu_info_arr)
+    gpu_arr = system["gpu_info_arr"]
+    # gpu_arr = ["NVIDIA", "Quadro", "K620"]
+    # gpu_arr = ["NVIDIA", "Quadro", "P4000"]
+    # gpu_arr = ["NVIDIA", "T1000"]
+    gpu_arr_len = len(gpu_arr)
+    gpu = " ".join(gpu_arr)
     os = system["os"]
-    is_quadro = None
+    is_quadro = False
+    index = 0
     driver = init_chromedriver()  # initialize web chrome driver
 
     # initialize nvidia options
-    product_type = gpu_info_arr[1]  # eg. GeForce | Quadro
+    if gpu_arr_len >= 3:
+        index = 1
+    product_type = gpu_arr[index]  # eg. GeForce | Quadro
     product_series = get_product_series(
-        gpu, gpu_info_arr
+        gpu, gpu_arr
     )  # eg. Quadro Series | GeForce RTX 20 Series
-    product = "{}".format(" ".join(gpu_info_arr[1 : len(gpu_info_arr)]))  # gpu name
+    product = "{}".format(" ".join(gpu_arr[index:gpu_arr_len]))  # gpu name
     os = os if "11" not in os else "Windows 11"
     # os = "Windows 10 64-bit"
-    if "Quadro" in product_type:
+    if "Quadro" == product_type or "NVIDIA" == product_type:
         is_quadro = True
     print_gpu_info(product_type, product_series, product, os)
+    print("is_quadro: ", is_quadro)
     try:
         driver.get(url)
         if not "Official" in driver.title:
@@ -67,7 +72,6 @@ def fetch_nvidia_driver(url, system_info):
             driver.find_element(By.ID, "selOperatingSystem")
         ).select_by_visible_text(os)
         print("sel_operating_system:", os)
-        sleep(10)
 
         # navigate through pages
         search_button = driver.find_element(
@@ -105,7 +109,6 @@ def parse_product_series(gpu_info_arr):
             filtered.append(series)
             break
         filtered.append(element)
-    print(filtered)
     return filtered
 
 
@@ -116,12 +119,13 @@ def get_product_series(gpu, gpu_info_arr):
         return "{} Series".format(gpu_info_arr[1])
     if "Quadro RTX" in gpu:
         return "{} Series".format(gpu_info_arr[1:3])
+    if "T1000" in gpu:
+        return "NVIDIA RTX Series"
     raise ValueError(f"Could not find a match for 'Product series'\n")
 
 
 def get_nvidia_url_from_element(driver, is_quadro=False):
     if is_quadro:
-        print("is_quadro: ", is_quadro)
         # Different html structure for specific product types ...
         xpath = "//*[@id='dnldBttns']/table/tbody/tr/td[1]/a"
     else:
