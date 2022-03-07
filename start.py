@@ -8,28 +8,33 @@ import amd_driver
 def main():
     index = 0
     system = system_info()
-    gpu_vendor = system["vendor"]
-    # gpu_vendor = "AMD"
-    # gpu_vendor = "NVIDIA"
-    # gpu_vendor = "1"
-    print("\n(!) {} graphics detected (!)".format(gpu_vendor))
+    # print("\n(!) {} graphics detected (!)".format(gpu_vendor))
 
-    def match_vendor(vendor):
+    def match_vendor(system):
         nonlocal index
-        match vendor:
-            case "NVIDIA":
-                print(f"\nRunning NVIDIA script\n")
-                return nvidia_driver.fetch_nvidia_driver(NVIDIA_URL, system_info)
-            case "AMD":
-                print(f"\nRunning AMD script")
-                return amd_driver.fetch_amd_driver(AMD_URL, system_info)
-            case _:
-                print(f"\nUnsupported graphics card")
-                print("Trying to find another GPU...")
-                index += 1
-                match_vendor(system_info(index=index)["vendor"])
+        vendor = system["vendor"]
+        # gpu_vendor = system["vendor"]
+        # vendor = "AMD"
+        # gpu_vendor = "NVIDIA"
+        # vendor = "fsdf"
+        try:
+            match vendor:
+                case "NVIDIA":
+                    print(f"\nRunning NVIDIA script\n")
+                    return nvidia_driver.fetch_nvidia_driver(NVIDIA_URL, system)
+                case "AMD":
+                    print(f"\nRunning AMD script")
+                    return amd_driver.fetch_amd_driver(AMD_URL, system)
+                case _:
+                    print(f"\nUnsupported graphics card")
+                    print("Trying to find another GPU...")
+                    index += 1
+                    match_vendor(system_info(index=index))
+        except Exception as e:
+            print("\n{}".format(e))
+            input("Press enter to quit:")
 
-    match_vendor(gpu_vendor)
+    match_vendor(system)
 
 
 if __name__ == "__main__":

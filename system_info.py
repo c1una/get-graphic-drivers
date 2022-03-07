@@ -12,7 +12,7 @@ def system_info(index=0):
         video_controller_len = len(video_controller_arr)
         gpu_info_arr = video_controller_arr[0].Name.split()
         if index > video_controller_len:
-            raise IndexError("( x ) Can't find a supported GPU ( x )")
+            print("( x ) Can't find a supported GPU ( x )")
         if index > 0:
             gpu_info_arr = video_controller_arr[index].Name.split()
         vendor = gpu_info_arr[0]
@@ -27,4 +27,4 @@ def system_info(index=0):
 
 
 # test
-# system_info()
+# system_info(

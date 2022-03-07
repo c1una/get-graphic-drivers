@@ -5,11 +5,13 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
 
 
-def fetch_nvidia_driver(url, system_info):
-    system = system_info()
-    if check_vendor(system) == False:
+def fetch_nvidia_driver(url, system):
+    vendor = system["vendor"]
+    if check_vendor(vendor) == False:
+        input("")
         return
     gpu_arr = system["gpu_info_arr"]
+    # gpu_arr = []
     # gpu_arr = ["NVIDIA", "Quadro", "K620"]
     # gpu_arr = ["NVIDIA", "Quadro", "P4000"]
     # gpu_arr = ["NVIDIA", "T1000"]
@@ -92,8 +94,8 @@ def fetch_nvidia_driver(url, system_info):
         print("\n{}".format(e))
 
 
-def check_vendor(system):
-    if system["vendor"] != "NVIDIA":
+def check_vendor(vendor):
+    if vendor != "NVIDIA":
         print("Can't run a NVIDIA script on a AMD card ¯\_(ツ)_/¯")
         return False
 
