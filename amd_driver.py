@@ -21,9 +21,10 @@ def fetch_amd_driver(url, system):
     # Parse gpu information to match options on the website
     product_type = "Graphics" if "PRO" not in gpu_arr[2] else "Professional Graphics"
     product_family = "AMD Radeon™ PRO" if "Radeon" and "PRO" in gpu_arr else gpu_arr[2]
-    product_model = "{}".format(" ".join(gpu_arr[1 : len(gpu_arr)]))
+    product_model = "{}".format(" ".join(gpu_arr[1: len(gpu_arr)]))
     if product_type == "Professional Graphics":
-        product_line = "{} Series".format(" ".join(parse_product_series(gpu_arr)))
+        product_line = "{} Series".format(
+            " ".join(parse_product_series(gpu_arr)))
     else:
         product_line = "{} Series".format(" ".join((gpu_arr[0:3])))
     print_gpu_info(product_type, product_family, product_line, product_model)
@@ -37,7 +38,8 @@ def fetch_amd_driver(url, system):
         # get autodetect software
         element_link = driver.find_element(
             By.XPATH,
-            "/html/body/div[1]/main/div/div/div/article/div/div/div[2]/div/div/div/div[1]/div/div[2]/div/p[5]/a",
+            # "/html/body/div[1]/main/div/div/div/article/div/div/div[2]/div/div/div/div[1]/div/div[2]/div/p[5]/a",
+            "/html/body/div[1]/main/div/div/div/article/div/div/div[1]/div/div/div/div[1]/div/div[2]/div[2]/div[1]/div/a"
         )
         print(f"\nGetting Auto detect software...")
         get_amd_url_from_element(driver, element_link)
@@ -54,7 +56,7 @@ def check_vendor(vendor):
 
 def parse_product_series(gpu_info_arr):
     filtered = []
-    for element in gpu_info_arr[1 : len(gpu_info_arr)]:
+    for element in gpu_info_arr[1: len(gpu_info_arr)]:
         if element[1].isnumeric():
             series = "{}{}000".format(element[0], element[1])
             filtered.append(series)

@@ -9,6 +9,7 @@ selenium = "*"
 requests = "*"
 auto-py-to-exe = "*"
 tqdm = "*"
+webdriver-manager = "*"
 
 [dev-packages]
 black = "*"
