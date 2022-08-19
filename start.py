@@ -22,7 +22,7 @@ def main():
                 case "NVIDIA":
                     print(f"\nRunning NVIDIA script\n")
                     return nvidia_driver.fetch_nvidia_driver(NVIDIA_URL, system)
-                case "AMD":
+                case "AMD" | "Radeon":
                     print(f"\nRunning AMD script")
                     return amd_driver.fetch_amd_driver(AMD_URL, system)
                 case _:

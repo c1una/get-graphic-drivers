@@ -6,10 +6,6 @@ from selenium.webdriver.common.by import By
 
 
 def fetch_nvidia_driver(url, system):
-    vendor = system["vendor"]
-    if check_vendor(vendor) == False:
-        input("")
-        return
     gpu_arr = system["gpu_info_arr"]
     # gpu_arr = []
     # gpu_arr = ["NVIDIA", "Quadro", "K620"]
@@ -54,7 +50,8 @@ def fetch_nvidia_driver(url, system):
                 print(f"sel_product_type:", option.text)
 
         # product series
-        sel_product_series = Select(driver.find_element(By.ID, "selProductSeries"))
+        sel_product_series = Select(
+            driver.find_element(By.ID, "selProductSeries"))
         sel_product_series_options = sel_product_series.options
         for option in sel_product_series_options:
             if re.fullmatch(product_series, option.text):
@@ -62,7 +59,8 @@ def fetch_nvidia_driver(url, system):
                 print("sel_product_series:", option.text)
 
         # product
-        sel_product_family = Select(driver.find_element(By.ID, "selProductFamily"))
+        sel_product_family = Select(
+            driver.find_element(By.ID, "selProductFamily"))
         sel_product_family_options = sel_product_family.options
         for option in sel_product_family_options:
             if re.fullmatch(product, option.text):
@@ -94,18 +92,12 @@ def fetch_nvidia_driver(url, system):
         print("\n{}".format(e))
 
 
-def check_vendor(vendor):
-    if vendor != "NVIDIA":
-        print("Can't run a NVIDIA script on a AMD card ¯\_(ツ)_/¯")
-        return False
-
-
 def parse_product_series(gpu_info_arr):
     """
     Grabs the first two digits from the series number
     """
     filtered = []
-    for element in gpu_info_arr[1 : len(gpu_info_arr)]:
+    for element in gpu_info_arr[1: len(gpu_info_arr)]:
         if element.isnumeric():
             series = element[0:2]
             filtered.append(series)

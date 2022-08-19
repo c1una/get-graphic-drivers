@@ -4,15 +4,12 @@ from selenium.webdriver.common.by import By
 
 
 def fetch_amd_driver(url, system):
-    vendor = system["vendor"]
+    # vendor = system["vendor"]
     # vendor = "AMD"
-    if check_vendor(vendor) == False:
-        input("")
-        return
     gpu_arr = system["gpu_info_arr"]
     # gpu_arr = ["AMD", "Radeon", "R5", "430"]
     # gpu_arr = ["AMD", "Radeon", "PRO", "W5500"]
-    os = system["os"]
+    # os = system["os"]
     # os = "Windows 10 64-Bit"
     for i in range(len(gpu_arr)):  # Add trademark
         if gpu_arr[i] == "Radeon":
@@ -46,12 +43,6 @@ def fetch_amd_driver(url, system):
 
     except Exception as e:
         print(e)
-
-
-def check_vendor(vendor):
-    if vendor != "AMD":
-        print("Can't run a AMD script on a NVIDIA card ¯\_(ツ)_/¯")
-        return False
 
 
 def parse_product_series(gpu_info_arr):
